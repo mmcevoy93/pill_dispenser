@@ -17,9 +17,12 @@
 // function implementations
 /////////////////////////////////////////////////////////////////////////////
 
+#define delay { int __x = 2000; while (--__x); }
 
 void servo_init(){
-    Timer_Init(MHz_Output_4, Timer_Prescale_4, 1); //same as LCD
+    CCP = 0xd8;
+    CLKCTRL.OSCHFCTRLA = 0b00001000;
+    
     TCB0.CTRLA = 0b00000011;//div2
     TCB0.CTRLB = 0b00000000;//no output pwm mode
     TCB0.INTCTRL = 0b00000001; //overflow
@@ -41,6 +44,6 @@ void servo_angle(float num){
             b--;
         }
     }
-    Timer_Sleep(2);
+    delay;
     
 }

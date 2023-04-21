@@ -1,25 +1,20 @@
 #include <avr/io.h>
-
 #include "lcd.h"
-
 // other includes, as *required* for this implementation
-#include "timer.h"
-
-#define lcd_
-
 /////////////////////////////////////////////////////////////////////////////
 // local prototypes
 /////////////////////////////////////////////////////////////////////////////
 //gotta be inputs, set R/W* high
-#define lcd_RWUp PORTA.OUT |= 0b00001000;
+#define lcd_RWUp PORTA.OUT |= 0b00100000;
 //set R/W* low, // gotta be outputs 
-#define lcd_RWDown PORTA.OUT &= 0b11110111;
+#define lcd_RWDown PORTA.OUT &= 0b11011111;
 
 #define lcd_EUp PORTA.OUT |= 0b00010000;
 #define lcd_EDown PORTA.OUT &= 0b11101111; 
-#define lcd_RSUp PORTA.OUT |= 0b00000100; //22.3.2.15
-#define lcd_RSDown PORTA.OUT &= 0b11111011; //22.3.2.15
+#define lcd_RSUp PORTA.OUT |= 0b01000000; //22.3.2.15
+#define lcd_RSDown PORTA.OUT &= 0b10111111; //22.3.2.15
 #define lcd_MicroDelay { char __x = 1; while (--__x); }
+#define lcd_longDelay { int __x = 1000; while (--__x); }
 
 /////////////////////////////////////////////////////////////////////////////
 // library variables
@@ -35,7 +30,7 @@
 
 //block function wait for LCD to be not busy
 void lcd_Busy(){
-    (void)Timer_Sleep(1);
+    lcd_longDelay;
     int temp = PORTC.OUT & 0b00001000;
     PORTC.OUTCLR = 0x08;
     PORTC.PIN4CTRL = 0b10000000;//invert pin 7 to be input
@@ -74,22 +69,22 @@ void lcd_Inst (int val){
 }
 
 void lcd_Init(){
-    PORTA.DIRSET= 0b00011100;
+    PORTA.DIRSET |= 0b01110000;
     PORTC.DIRSET= 0b00001111;
-    Timer_Init(MHz_Output_16, Timer_Prescale_8, 1);
-    (void)Timer_Sleep(15);//delay may be there from reset
+    
+    lcd_longDelay;//delay may be there from reset
     lcd_EDown;
     lcd_RSDown;
     lcd_RWDown; 
-    (void)Timer_Sleep(10);
+    lcd_longDelay;
     lcd_EUp;
     lcd_EDown;
-    (void)Timer_Sleep(15);
+    lcd_longDelay;
     lcd_EUp;
     lcd_EDown;
-    (void)Timer_Sleep(1);
+    lcd_longDelay;
     //Function set
-    lcd_Inst(0x02); //
+    lcd_Inst(0x02); //move cursor home.
     lcd_Inst(0x28); //Function Set //Data length 4 bits
     lcd_Inst(0x01); //Clear
     lcd_Inst(0x0c); //Cursor off
